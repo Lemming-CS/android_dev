@@ -1,98 +1,54 @@
-import "package:android_dev/screens/home_screen/models/post_model.dart";
-import "package:flutter/material.dart";
+import 'package:android_dev/screens/home_screen/models/post_model.dart';
+import 'package:android_dev/screens/content/comments_sheet.dart';
+import 'package:material_ui/material_ui.dart';
 
-class PostWidget extends StatefulWidget {
-  final PostModel? post;
-  const PostWidget({super.key,required this.post});
+class PostWidget extends StatelessWidget {
+  final PostModel post;
+  final VoidCallback onLike;
 
-  @override
-  State<PostWidget> createState() => _PostWidgetState();
-}
+  const PostWidget({super.key, required this.post, required this.onLike});
 
-class _PostWidgetState extends State<PostWidget> {
-  final bool isLiked = false; 
- // This should ideally be managed by state management
-
- void openBottomSheet() {
-    showModalBottomSheet(
+  void openBottomSheet(BuildContext context) {
+    showModalBottomSheet<void>(
       context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 200,
-          color: Colors.white,
-          child: Center(
-            child: Text('Bottom Sheet Content'),
-          ),
-        );
-      },
+      isScrollControlled: true,
+      builder: (context) => CommentsSheet(postId: post.id),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey,
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3), // changes position of shadow
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-      child: Column(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: Image.network(
-              widget.post?.imageUrl ?? 'https://via.placeholder.com/150',
-              width: double.infinity,
-              fit: BoxFit.cover,
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [BoxShadow(color: Colors.grey, spreadRadius: 2, blurRadius: 5, offset: Offset(0, 3))],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
-          ),
-          Row(
-            children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(post.imageUrl, width: double.infinity, fit: BoxFit.cover),
+            ),
+            Row(children: [
               IconButton(
-                icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
-                onPressed: () {
-                  setState(() {
-                    // This should ideally update the like count in a state management solution
-                    if (isLiked) {
-                      widget.post?.addLike((widget.post?.likeCount ?? 1) - 1);
-                    } else {
-                      widget.post?.addLike((widget.post?.likeCount ?? 0) + 1);
-                    }
-                  });
-                },
+                icon: Icon(post.isLiked ? Icons.favorite : Icons.favorite_border),
+                color: post.isLiked ? Colors.red : null,
+                onPressed: onLike,
               ),
-              IconButton(
-                icon: const Icon(Icons.comment),
-                onPressed: () {
-                  openBottomSheet();
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: () {},
-              ),
-              Spacer(),
-              IconButton(
-                icon: const Icon(Icons.bookmark_border),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          Text(
-            widget.post?.description ?? '',
-            style: const TextStyle(fontSize: 16.0),
-          ),
-
-        ],)
-
-    );
-  }
+              Text('${post.likeCount}'),
+              IconButton(icon: const Icon(Icons.comment), onPressed: () => openBottomSheet(context)),
+              IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+              const Spacer(),
+              IconButton(icon: const Icon(Icons.bookmark_border), onPressed: () {}),
+            ]),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text(post.description)),
+          ],
+        ),
+      );
 }
